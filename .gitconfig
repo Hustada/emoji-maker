@@ -1,0 +1,53 @@
+[user]
+    name = Mark Hustad
+    username = hustada
+    email = hustad.dev@protonmail.com
+
+[core]
+    editor = code --wait
+    autocrlf = input
+    whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
+
+[init]
+    defaultBranch = main
+
+[color]
+    ui = auto
+
+[pull]
+    rebase = false
+
+[push]
+    default = current
+    autoSetupRemote = true
+
+[alias]
+    # Basic shortcuts
+    st = status
+    co = checkout
+    br = branch
+    ci = commit
+    df = diff
+    dc = diff --cached
+    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+
+    # Feature branch workflow
+    feat = "!f() { git checkout -b feature/$1; }; f"
+    bug = "!f() { git checkout -b bugfix/$1; }; f"
+    done = "!f() { git push origin HEAD && gh pr create --web; }; f"
+
+    # Useful commands
+    undo = reset --soft HEAD^
+    amend = commit --amend --no-edit
+    cleanup = "!git branch --merged | grep -v '\\*\\|main\\|develop' | xargs -n 1 git branch -d"
+    sync = "!git fetch origin && git rebase origin/main"
+
+[branch]
+    autosetuprebase = always
+
+[merge]
+    ff = only
+    conflictstyle = diff3
+
+[diff]
+    colorMoved = default 
