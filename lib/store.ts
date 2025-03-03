@@ -40,14 +40,12 @@ export const useEmojiStore = create<EmojiStore>()(
           }
         })
       },
-      toggleLike: (id: string) => {
-        console.log('💞 Toggling like for emoji:', id)
+      toggleLike: async (id: string) => {
         set((state) => {
           const updatedEmojis = state.emojis.map((emoji) =>
             emoji.id === id ? { ...emoji, liked: !emoji.liked } : emoji
           )
           const likedEmoji = updatedEmojis.find(emoji => emoji.id === id)
-          console.log('💞 New liked status:', likedEmoji?.liked)
           
           // Call the API to update likes in the database
           fetch('/api/emojis/like', {
@@ -55,6 +53,7 @@ export const useEmojiStore = create<EmojiStore>()(
             headers: {
               'Content-Type': 'application/json',
             },
+            credentials: 'include', // Important: include credentials
             body: JSON.stringify({
               emojiId: id,
               like: likedEmoji?.liked

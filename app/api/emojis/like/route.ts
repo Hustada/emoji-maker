@@ -6,60 +6,42 @@ import { generateUUIDFromString } from '@/lib/utils';
 /**
  * API endpoint to like/unlike an emoji
  */
-export async function POST(request: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const { userId } = auth();
-    
+    // Check authentication
+    const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
-    // Generate UUID for Supabase from Clerk ID
-    const supabaseUserId = generateUUIDFromString(userId);
-    console.log('🔑 Using Supabase UUID:', supabaseUserId, 'for like operation');
-    
-    // Get the emoji ID from the request body
-    const { emojiId, like } = await request.json();
+
+    // Get request body
+    const { emojiId, like } = await req.json();
     
     if (!emojiId) {
-      return NextResponse.json(
-        { error: 'Emoji ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing emojiId' }, { status: 400 });
     }
-    
-    console.log(`${like ? '❤️' : '💔'} ${like ? 'Liking' : 'Unliking'} emoji:`, emojiId);
-    
-    // Increment or decrement the likes_count
+
+    // Update likes count in the emojis table
     const { data, error } = await supabaseAdmin
       .from('emojis')
-      .update({ 
-        likes_count: like 
-          ? supabaseAdmin.rpc('increment_likes', { row_id: emojiId })
-          : supabaseAdmin.rpc('decrement_likes', { row_id: emojiId })
+      .update({
+        likes_count: like ? 1 : 0  // Increment or decrement likes
       })
       .eq('id', emojiId)
-      .select('likes_count')
+      .select()
       .single();
-    
+
     if (error) {
-      console.error('❌ Error updating likes:', error);
+      console.error('Failed to update likes:', error);
       return NextResponse.json(
         { error: 'Failed to update likes' },
         { status: 500 }
       );
     }
-    
-    return NextResponse.json({ 
-      success: true, 
-      likes: data.likes_count 
-    });
-    
+
+    return NextResponse.json({ success: true, data });
   } catch (error) {
-    console.error('❌ Error in like/unlike endpoint:', error);
+    console.error('Like error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
