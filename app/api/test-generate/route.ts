@@ -1,16 +1,18 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import Replicate from 'replicate'
-import { supabaseAdmin } from '@/lib/supabase-admin.server'
-import { ensureUserProfile } from '@/lib/auth'
-import { generateUUIDFromString } from '@/lib/utils'
 
+// Create a separate Replicate instance for testing
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN!,
 })
 
+/**
+ * Test API endpoint for emoji generation
+ * This endpoint doesn't check for credits - it's only for testing
+ */
 export async function POST(req: Request) {
-  console.log('📝 Generate API called')
+  console.log('📝 Test Generate API called')
   try {
     // Get authenticated user
     const { userId } = await auth()
@@ -20,27 +22,6 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
-      )
-    }
-
-    // Ensure user profile exists and get profile data
-    console.log('🔍 Ensuring user profile exists...')
-    const profile = await ensureUserProfile(userId)
-    console.log('👤 User profile:', profile)
-    
-    if (!profile) {
-      console.log('❌ Failed to get or create user profile')
-      return NextResponse.json(
-        { error: 'Failed to get or create user profile' },
-        { status: 500 }
-      )
-    }
-    
-    if (profile.credits <= 0) {
-      console.log('❌ No credits remaining')
-      return NextResponse.json(
-        { error: 'No credits remaining' },
-        { status: 403 }
       )
     }
 
@@ -54,7 +35,7 @@ export async function POST(req: Request) {
       "fofr/sdxl-emoji:dee76b5afde21b0f01ed7925f0665b7e879c50ee718c5f78a9d38e04d523cc5e",
       {
         input: {
-          prompt: "A TOK emoji of " + prompt,
+          prompt: prompt,
           apply_watermark: false,
           num_outputs: 1
         }
@@ -69,8 +50,6 @@ export async function POST(req: Request) {
         console.log('🖼️ First item type:', typeof output[0])
       }
     }
-
-    // Validate Replicate output
     console.log('🖼️ Replicate output:', output)
     
     // Extract the image URL from the Replicate output
@@ -129,38 +108,15 @@ export async function POST(req: Request) {
       throw new Error('Unexpected output format from Replicate');
     }
     
-    // Final check
-    if (!imageUrl) {
-      console.log('❌ No image URL could be extracted');
-      throw new Error('Could not extract image from Replicate response');
-    }
+    console.log('✅ Final image URL:', imageUrl?.substring(0, 100) + '...');
     
-    console.log('✅ Final image URL:', imageUrl.substring(0, 100), '...');
-
-    // Deduct one credit
-    console.log('💸 Deducting credit from user...')
-    // Generate UUID for Supabase from Clerk ID
-    const supabaseUserId = generateUUIDFromString(userId);
-    console.log('🔑 Using Supabase UUID:', supabaseUserId, 'for credit deduction');
-    
-    const { error: creditError } = await supabaseAdmin
-      .from('profiles')
-      .update({ credits: profile.credits - 1 })
-      .eq('user_id', supabaseUserId)
-    
-    if (creditError) {
-      console.log('❌ Error deducting credit:', creditError)
-    } else {
-      console.log('✅ Credit deducted successfully')
-    }
-
+    // Return the image URL
     console.log('🚀 Returning image URL to client')
     return NextResponse.json({ imageUrl })
-
-  } catch (error) {
-    console.error('❌ Generation error:', error)
+  } catch (error: any) {
+    console.error('❌ Error generating emoji:', error)
     return NextResponse.json(
-      { error: 'Failed to generate emoji' },
+      { error: error.message || 'Failed to generate emoji' },
       { status: 500 }
     )
   }

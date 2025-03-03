@@ -3,11 +3,42 @@
 import { Button } from "@/components/ui/button";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import { Menu, X } from "lucide-react"; // Import menu icons
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useUser } from '@clerk/nextjs'
+import { createOrGetUser } from '@/lib/actions'
 
 export default function Header() {
-  // State to track mobile menu visibility
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, isLoaded } = useUser()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+  useEffect(() => {
+    async function syncUser() {
+      if (user) {
+        try {
+          // Call the profile API endpoint instead of directly using the server action
+          const response = await fetch('/api/auth/profile', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+          
+          if (response.ok) {
+            const profile = await response.json()
+            console.log('User profile synced:', profile)
+          } else {
+            console.error('Failed to sync profile:', await response.text())
+          }
+        } catch (error) {
+          console.error('Failed to sync profile:', error)
+        }
+      }
+    }
+
+    if (isLoaded) {
+      syncUser()
+    }
+  }, [user, isLoaded])
 
   // Toggle function for mobile menu
   const toggleMenu = () => {
