@@ -1,6 +1,6 @@
 # 🎨 Emoji Maker
+![Screenshot 2025-03-04 at 1 38 19 PM](https://github.com/user-attachments/assets/51199bdc-bc6d-409c-b7c3-04b252b736fa)
 
-![Emoji Maker Banner](https://raw.githubusercontent.com/Hustada/emoji-maker/main/public/og-image.png)
 
 A modern AI-powered emoji generation and management application. Create, customize, and organize your own unique emojis with just a few clicks!
 
@@ -150,11 +150,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## 📬 Contact
+ victorhustad@victorcollective.com
 
-Mark Hustad - [@hustada](https://github.com/Hustada)
-
-Project Link: [https://github.com/Hustada/emoji-maker](https://github.com/Hustada/emoji-maker)
-
----
+### Powered by the Victor Collective
 
 Built with ❤️ using Next.js, Clerk, Supabase, and Replicate
